@@ -1,0 +1,426 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h1{
+  color: #111111;
+  font-family: Roboto;
+  font-size: 6rem;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 120%;
+  letter-spacing: -0.09;
+}
+
+h2{
+  color: #111111;
+  font-family: Roboto;
+  font-size: 3.75rem;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 120%;
+  letter-spacing: -0.01875rem;
+}
+
+h3{
+  color: #111111;
+  font-family: Roboto;
+  font-size: 3rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+  letter-spacing: normal;
+}
+
+h4{
+  color: #111111;
+  font-family: Roboto;
+  font-size: 2.125rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+  letter-spacing: 0.00531rem;
+}
+
+h5{
+  color: #111111;
+  font-family: Roboto;
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+  letter-spacing: normal;
+}
+
+h6{
+  color: #111111;
+  font-family: Roboto;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%;
+  letter-spacing: 0.00188rem;
+}
+
+.subtitle{
+  font-family: Roboto;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 120%;
+  letter-spacing: 0.0015rem
+}
+
+p{
+  font-family: Roboto;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: 0.00rem;
+}
+
+button{
+  font-family: Roboto;
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 120%;
+  letter-spacing: 0.01094rem;
+  display: inline-flex;
+  padding: 0.5rem 1.25rem;
+  justify-content: center;
+  align-items: center;
+  gap:0.5rem;
+  border-radius: 3.125rem;
+  border: 1px solid #20A12A;
+  background-color: #FFFFFF;
+}
+
+button:hover{
+  background-color: #20A12A;
+  color: #FFFFFF;
+  animation-delay: 1000ms;
+}
+
+button.secondary{
+  border: 1px solid #111111;
+  background-color: #FFFFFF;
+}
+button.secondary:hover{
+  background-color: #111111;
+  color: #FFFFFF;
+}
+
+#logo{
+  display: flex;
+  padding: 0.625rem;
+  align-items: flex-start;
+  border-radius: 1.875rem;
+  background-color: #20A12A;
+}
+
+.white{
+  color: #FFFFFF;
+}
+
+nav{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2.5rem;
+  background-color: #FFFFFF;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.tdn{
+  text-decoration: none;
+}
+
+.fu-l{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap:2rem;
+}
+
+.ctamain{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap:1rem;
+}
+
+.l3{
+  display: flex;
+  align-items: flex-start;
+  gap:3rem;
+  text-decoration: none;
+}
+
+.nav-a{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap:1rem;
+  text-decoration: none;
+  color: #111111;
+}
+
+a {
+  text-decoration: none;
+  color: #111111;
+}
+
+.hero{
+  height: 90vh;
+  display: flex;
+  width:100%;
+  padding-left:4rem;
+  padding-right:4rem;
+  align-items: center;
+  gap: 5rem;
+  background-color: #FFFFFF;
+}
+
+
+.img{
+  width:50%;
+  height:50%;
+}
+
+.inner-hero{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.catch{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  align-self: stretch;
+}
+
+.how-it-works{
+  display: flex;
+  padding: 7rem 4rem;
+  align-items: center;
+  gap:17.8125rem;
+  align-self: stretch;
+}
+
+.hiw-l{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+}
+
+.hiw-l-inner{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  align-self: stretch;
+  
+}
+
+.hiw-l-i-inner{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  align-self: stretch;
+}
+
+.line{
+  width: 0.125rem;
+  height: 6.25rem;
+  background-color: #111111;
+}
+
+.hiwri1-n{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.hiwsub{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  flex: 1 0 0;
+}
+
+.hiw-r-inner{
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5rem;
+  align-self: stretch;
+}
+
+.hiw-r{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+
+.cooking-img{
+  width: 85%;
+  height: 45%;
+}
+
+.our-mission{
+  display: flex;
+  padding: 7rem 4rem;
+  align-items: center;
+  gap:5rem;
+  align-self: stretch;
+}
+
+.our-mission-inner{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  align-self: stretch;
+}
+
+.omi-1{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+  align-self: stretch;
+}
+
+#oum:hover{
+  color:#FFFFFF;
+}
+
+.faqsection{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 7rem 4rem;
+  align-items: flex-start;
+  gap:5rem;
+  align-self: stretch;
+}
+
+.faqs-i-t{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+  align-self: stretch;
+}
+
+.faqsection-ii{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3rem;
+  align-self: stretch;
+}
+
+.img-s{
+  width: 75%;
+  height: 75%;
+}
+
+.footer-i-1{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  align-self: stretch;
+}
+
+.footer-ul{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+  align-self: stretch;
+}
+
+ul{
+  list-style: none;
+}
+
+.footer-i-i-inner{
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1.5rem;
+  justify-content: center;
+  align-self: stretch;
+}
+
+.cred{
+  border-top: #111111;
+  border-top-style: solid;
+  border-top-width: 0.125rem;
+  padding-top: 0.5rem;
+  width: 94%;
+  text-align: center;
+}
+
+input{
+  display: flex;
+  padding: 0.75rem;
+  border-radius: 1.75rem;
+  border: 1px solid #111111;
+  width: 100%;
+}
+
+.signup{
+  display: flex;
+  flex-direction: column;
+  width: 30rem;
+  padding:3rem;
+  border: #111111 solid 1px;
+  align-items: center;
+  gap: 1rem;
+  align-self: stretch;
+  height: auto  ;
+}
+
+#sig{
+text-align: center;
+}
+
+#sbsiup{
+  width: 100%;
+}
+
+.signim{
+  margin-top: 5rem;
+  margin-bottom: 10rem;
+display: flex;
+justify-content: center;
+align-items: center;
+padding-bottom: 1.25rem;
+height: auto;
+}
+
+#lg-su{
+text-decoration:underline;
+}:hover{
+text-decoration: none;
+}
