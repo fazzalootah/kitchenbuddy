@@ -1,0 +1,63 @@
+.signin-container {
+    margin-top: 5rem;
+    margin-bottom: 10rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+    padding-bottom: 1.25rem;
+}
+
+.signin-form {
+    display: flex;
+    flex-direction: column;
+    width: 30rem;
+    padding: 3rem;
+    border: #111111 solid 1px;
+    align-items: center;
+    gap: 1rem;
+    align-self: stretch;
+    height: auto;
+}
+
+.signin-title,
+.signin-description {
+    text-align: center;
+}
+
+.login-link {
+    text-decoration: underline;
+}
+
+.login-link:hover {
+    text-decoration: none;
+}
+
+.signin-header{
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 1.5rem;
+align-self: stretch;
+}
+
+.divider {
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+align-self: stretch;
+width: 100%;
+height: 0.0625rem;
+background: #000;
+}
+
+button.tertiary{
+    border: 1px solid #111111;
+    background-color: #111111;
+    color: #FFFFFF;
+    width: 100%;
+  }
+
+  button{
+    width: 100%;
+  }
