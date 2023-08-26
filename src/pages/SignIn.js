@@ -131,7 +131,7 @@ const parseErrorMessage = (code) => {
           Sign In with Google
         </button>
         <div className='signup-redirect'>
-          <p>Don't have an account? <a href='/signup'><span className='signup-link'>Sign Up</span></a></p>
+          <p>Don't have an account? <a href='/signup'><span className='login-link'>Sign Up</span></a></p>
         </div>
       </form>
     </div>

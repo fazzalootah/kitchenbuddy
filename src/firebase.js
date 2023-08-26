@@ -14,7 +14,6 @@ import {
 } from 'firebase/auth';
 
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { useState, useEffect, useContext, createContext } from 'react'
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,

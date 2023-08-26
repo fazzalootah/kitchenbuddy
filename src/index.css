@@ -95,6 +95,7 @@ button{
   gap:0.5rem;
   border-radius: 3.125rem;
   border: 1px solid #20A12A;
+  margin: 0px;
   background-color: #FFFFFF;
 }
 
