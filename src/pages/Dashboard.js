@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { firestore, auth, signOut } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import "./css/dashboard.css";
 import PreferencesModal from './PreferencesModal';
 
 const Dashboard = () => {
@@ -45,6 +46,7 @@ const Dashboard = () => {
       <h1>Dashboard</h1>
       <button onClick={handleSignOut}>Sign Out</button>
       {showModal && <PreferencesModal close={closeModal} isFirstLogin={isFirstLogin}  />}
+
     </div>
   );
 }
