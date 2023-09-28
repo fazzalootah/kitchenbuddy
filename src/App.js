@@ -7,7 +7,6 @@ import Dashboard from './pages/Dashboard';
 import {ProtectedRoute} from "./ProtectedRoute.js";
 import { UserAuthContextProvider } from "./UserAuthContext";
 import Nav from './components/Navbar';
-
 function App() {
   return (
     <UserAuthContextProvider>
@@ -17,15 +16,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
-          </Route>
-          <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
+        </Route>
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
         </Routes>
     </Router>
     </UserAuthContextProvider>
