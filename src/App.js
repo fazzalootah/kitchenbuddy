@@ -17,7 +17,7 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
         </Route>
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /> </ProtectedRoute>}/>
         </Routes>
     </Router>
     </UserAuthContextProvider>

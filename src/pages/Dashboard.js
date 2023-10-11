@@ -2,52 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { firestore, auth, signOut } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import PreferencesModal from './PreferencesModal';
+import { useUserAuth } from '../UserAuthContext';
+import axios from 'axios';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import './css/dashboard.css'
+
+const localizer = momentLocalizer(moment);
+
+const CustomEvent = ({ event }) => {
+    // Split the meals string into an array
+    const meals = event.title.split(','); // Assuming meals are comma-separated
+
+    return (
+        <div>
+            {meals.map((meal, index) => (
+                <a 
+                    key={index}
+                    href={`#meal-link-for-${meal.trim()}`} // Adjust the link as per your needs
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ display: 'block', marginBottom: '5px' }} // Adding some spacing between links
+                >
+                    {meal.trim()}
+                </a>
+            ))}
+        </div>
+    );
+};
+
+
 
 const Dashboard = () => {
     const [showModal, setShowModal] = useState(false);
     const [isFirstLogin, setIsFirstLogin] = useState(false);
-    const [mealSuggestion, setMealSuggestion] = useState('');
-    const [protein, setProtein] = useState('');
-    const [diet, setDiet] = useState('');
-    const [cuisine, setCuisine] = useState('');
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        const checkFirstLogin = async (user) => {
-            const userRef = doc(firestore, "users", user.uid, "data", "preferences");
-            const docSnapshot = await getDoc(userRef);
-            if (!docSnapshot.exists()) {
-                setShowModal(true);
-                setIsFirstLogin(true);
-            }
-        };
-
-        const unsubscribe = auth.onAuthStateChanged(user => user && checkFirstLogin(user));
-        return () => unsubscribe();
-    }, []);
-
-    const fetchMealSuggestion = async () => {
-        try {
-            const requestBody = { protein, diet, cuisine };
-
-            const response = await fetch('http://localhost:3001/openai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                const errorDetails = await response.json();
-                throw new Error(errorDetails.error);
-            }
-
-            const data = await response.json();
-            setMealSuggestion(data.meal);
-        } catch (err) {
-            console.error("Error:", err);
-            setError(`Error: ${err.message}`);
-        }
-    };
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [mealSuggestion, setMealSuggestion] = useState([]);
+    const [events, setEvents] = useState([]);
+    const { user } = useUserAuth();
+    const userUid = user ? user.uid : null;
+    const API_Key = process.env.REACT_APP_OPENAI_API_KEY;
+    const [selectedDate, setSelectedDate] = useState(new Date()); // State to track the currently viewed day
 
     const handleLogout = async () => {
         try {
@@ -57,70 +55,184 @@ const Dashboard = () => {
         }
     };
 
+    
+
+    useEffect(() => {
+        console.log("User Data:", userData);
+        const checkFirstLogin = async (user) => {
+            const userRef = doc(firestore, "users", user.uid, "data", "preferences");
+            const docSnapshot = await getDoc(userRef);
+            if (!docSnapshot.exists()) {
+                setShowModal(true);
+                setIsFirstLogin(true);
+            }
+        };
+        
+        const unsubscribe = auth.onAuthStateChanged(user => user && checkFirstLogin(user));
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        console.log("User Data:", userData);
+        if (user) {
+          const userUid = user.uid;
+          const docRef = doc(firestore, `users/${userUid}/data/preferences`);
+    
+          const fetchUserData = async () => {
+            try {
+              const docSnap = await getDoc(docRef);
+    
+              if (docSnap.exists()) {
+                setUserData([docSnap.data()]);
+              } else {
+                console.log('No such document!');
+              }
+            } catch (error) {
+              console.log('Error getting document:', error);
+            }
+          };
+    
+          fetchUserData();
+        }
+      }, []);
+
+    const fetchMealSuggestion = async () => {
+        if (!userData || userData.length === 0) {
+            console.error("User data is not loaded yet.");
+            return;
+        }
+    
+        console.log("Button Clicked");
+        setLoading(true);
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${API_Key}`,
+            },
+        };
+
+        try {
+            const messagesToSend = [
+                { role: "system", content: "You are a helpful assistant." },
+                {
+                    role: "user",
+                    content: `
+                    Given the following user profile:
+                    - Activity Level: ${userData[0].activityLevel}
+                    - Age: ${userData[0].age} years old
+                    - Allergies: ${userData[0].allergies}
+                    - Cooking Skill: ${userData[0].cookingSkillLevel}
+                    - Cooking Time Preference: ${userData[0].cookingTimePreferences}
+                    - Dietary Preference: ${userData[0].dietaryPreferences}
+                    - Frequency of Eating Out: ${userData[0].eatingOut}
+                    - Gender: ${userData[0].gender}
+                    - Health Conditions: ${userData[0].healthConditions}
+                    - Height: ${userData[0].height}
+                    - Duration of Meal Plan: ${userData[0].lengthOfMealPlan} days
+                    - Meals Per Day Preference: ${userData[0].mealsPerDay}
+                    - Preferred Cuisine: ${userData[0].preferredCuisine}
+                    - Primary Fitness Goal: ${userData[0].primaryGoal}
+                    - Snacks Per Day: ${userData[0].snacksPerDay}
+                    - Weight: ${userData[0].weight} KG
+                    
+                    Suggest a meal plan based on the above profile.
+                    `
+                                    },
+            ];
+            const data = await axios.post(
+                "https://api.openai.com/v1/chat/completions",
+                {
+                    model: `gpt-3.5-turbo`,
+                    messages: messagesToSend,
+                    max_tokens: 3000,
+                },
+                config
+            );
+            const rawMealPlan = data.data.choices[0].message.content;
+            const mealsByDay = rawMealPlan.split('\n'); // Adjust if your format differs
+            console.log(mealsByDay);
+            setMealSuggestion(mealsByDay);
+            setLoading(false);
+        } catch (err) {
+            console.log(err);
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+    const formatMealPlanOutput = (output) => {
+        const mealPlan = [];
+        let currentDayMeals = []; // An array to store meals for a day
+    
+        output.forEach((line, index) => {
+            if (line.includes("Day")) {
+                if (currentDayMeals.length) {
+                    mealPlan.push(currentDayMeals.join('\n')); // Join meals with a newline and add to mealPlan
+                    currentDayMeals = [];
+                }
+            } else if (line.includes("Breakfast") || line.includes("Lunch") || line.includes("Dinner")) {
+                currentDayMeals.push(line);
+            } 
+        });
+    
+        if (currentDayMeals.length) {
+            mealPlan.push(currentDayMeals.join('\n'));
+        }
+    
+        return mealPlan;
+    };
+    
+    useEffect(() => {
+        if (mealSuggestion && mealSuggestion.length) {
+            const formattedPlan = formatMealPlanOutput(mealSuggestion);
+            const newEvents = formattedPlan.map((day, index) => ({
+                start: moment().add(index, 'days').startOf('day').toDate(),
+                end: moment().add(index, 'days').endOf('day').toDate(),
+                title: day  // use just the day string
+            }));
+    
+            setEvents(newEvents);
+        }
+    }, [mealSuggestion]);
+    
+    const mealOutput = [ /*... your output array ...*/ ];
+const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
 
     return (
         <div>
-            <div className="selection-container">
-                <div className="header">
-                    <h2>Make your selections</h2>
-                    <p>Choose a protein, nutritional style, and cuisine to get started.</p>
-                </div>
-
-                <div className="option-group">
-                    <label htmlFor="protein-select">Choose a protein:</label>
-                    <select id="protein-select" value={protein} onChange={e => setProtein(e.target.value)}>
-    <option value="None selected">Select Protein</option>
-    <option value="Beef">Beef</option>
-    <option value="Chicken">Chicken</option>
-    <option value="Fish">Fish</option>
-    <option value="Pork">Pork</option>
-    <option value="Turkey">Turkey</option>
-    <option value="Plant">Plant</option>
-</select>
-
-                </div>
-
-                <div className="option-group">
-                    <label htmlFor="diet-select">Nutritional Style:</label>
-                    <select id="diet-select" value={diet} onChange={e => setDiet(e.target.value)}>
-    <option value="None selected">Select Nutritional Style</option>
-    <option value="Healthy">Healthy</option>
-    <option value="Hearty">Hearty</option>
-    <option value="Low Carb">Low Carb</option>
-</select>
-
-                </div>
-
-                <div className="option-group">
-                    <label htmlFor="cuisine-select">Cuisine:</label>
-                    <select id="cuisine-select" value={cuisine} onChange={e => setCuisine(e.target.value)}>
-    <option value="None selected">Select Cuisine</option>
-    <option value="Italian">Italian</option>
-    <option value="Mexican">Mexican</option>
-    <option value="Chinese">Chinese</option>
-    <option value="American">American</option>
-    <option value="Indian">Indian</option>
-</select>
-
-                </div>
-
-                <div className="display-section">
-                    <p><strong>Protein:</strong> {protein}</p>
-                    <p><strong>Nutritional Style:</strong> {diet}</p>
-                    <p><strong>Cuisine:</strong> {cuisine}</p>
-                </div>
-
-                <button onClick={fetchMealSuggestion}>Get Meal Suggestion</button>
-                <div>
-                <p>Meal Suggestion: {mealSuggestion}</p>
-            {error && <p>Error: {error}</p>}                
-            </div>
-                <button onClick={handleLogout}>Sign Out</button>
-            </div>
-
             {showModal && <PreferencesModal close={() => setShowModal(false)} isFirstLogin={isFirstLogin} />}
+            <h1>Welcome to Meal Planner</h1>
+            <button onClick={fetchMealSuggestion} disabled={loading || !userData}>
+                Get Meal Suggestion
+            </button>
+            {loading && <p>Loading...</p>}
+            {error && <p>Error: {error}</p>}
+
+            <Calendar
+                localizer={localizer}
+                events={events}
+                startAccessor="start"
+                endAccessor="end"
+                style={{ height: 500 }}
+                views={['week']} // This restricts the view to just 'day'
+                defaultView="week" // This sets the default view to 'day'
+                onNavigate={(date) => setSelectedDate(date)} 
+                timeslots={2}
+                timeslotStyle={(date, isGutter) => {
+                  if (isGutter) {
+                    return { display: 'none' };
+                  }
+                  return {};
+                }}// This captures the current date in focus
+                id="myCalendar"
+                components={{
+                    event: CustomEvent,
+                }}
+    
+            />
+                    <button onClick={handleLogout}>Sign Out</button>
+
         </div>
     );
-}
+};
 
 export default Dashboard;
