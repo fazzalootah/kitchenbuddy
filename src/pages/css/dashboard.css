@@ -1,0 +1,194 @@
+*{
+    font-family: roboto;
+}
+.dashboard {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard__heading,
+.dashboard__result-heading {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.dashboard__description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.dashboard__controls,
+.dashboard__result {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.dashboard__control {
+    margin-bottom: 10px;
+}
+
+.dashboard__label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.dashboard__dropdown {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.dashboard__btn,
+.dashboard__logout-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #FFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dashboard__btn:hover,
+.dashboard__logout-btn:hover {
+    background-color: #0056b3;
+}
+
+.dashboard__result-text {
+    margin-bottom: 10px;
+}
+
+.dashboard__result-list,
+.dashboard__result-instructions {
+    list-style-type: none;
+    margin-bottom: 20px;
+}
+
+.dashboard__result-item,
+.dashboard__result-instruction {
+    margin-bottom: 5px;
+}
+
+.dashboard__error {
+    color: red;
+    font-weight: bold;
+}
+
+.dashboard__logout-btn {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dashboard {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard__heading,
+.dashboard__result-heading {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.dashboard__description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.dashboard__controls,
+.dashboard__result {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.dashboard__control {
+    margin-bottom: 10px;
+}
+
+.dashboard__label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.dashboard__dropdown {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.dashboard__btn,
+.dashboard__logout-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: #FFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dashboard__btn:hover,
+.dashboard__logout-btn:hover {
+    background-color: #0056b3;
+}
+
+.dashboard__result-text {
+    margin-bottom: 10px;
+}
+
+.dashboard__result-list,
+.dashboard__result-instructions {
+    list-style-type: none;
+    margin-bottom: 20px;
+}
+
+.dashboard__result-item,
+.dashboard__result-instruction {
+    margin-bottom: 5px;
+}
+
+.dashboard__error {
+    color: red;
+    font-weight: bold;
+}
+
+.dashboard__logout-btn {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.rbc-time-gutter, .rbc-time-header-gutter {
+    display: none !important;
+}
+.rbc-month-view .rbc-events-container {
+    display: none !important;
+}
+#myCalendar .rbc-events-container {
+    display: none;
+}
+
+/* .rbc-time-column */
+.rbc-toolbar, .rbc-event-label, .rbc-time-slot, .rbc-timeslot-group{
+    display: none;
+}
+
+.rbc-event-content{
+height: 100px;;
+
+}
