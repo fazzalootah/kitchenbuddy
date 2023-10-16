@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { firestore, auth, signOut } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import PreferencesModal from './PreferencesModal';
 import { useUserAuth } from '../UserAuthContext';
 import axios from 'axios';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './css/dashboard.css'
@@ -47,6 +47,31 @@ const Dashboard = () => {
     const API_Key = process.env.REACT_APP_OPENAI_API_KEY;
     const [selectedDate, setSelectedDate] = useState(new Date()); // State to track the currently viewed day
 
+
+    useEffect(()=>{
+        console.log("User Data:", userData);
+        if (user) {
+            // console.log(user);
+          const userUid = user.uid;
+          const docRef = doc(firestore, `users/${userUid}/data/preferences`);
+            // this is the function to fetch user data
+            const fetchUserData = async()=>{
+                try {
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                      setUserData([docSnap.data()]);
+                      console.log([docSnap.data()]);
+                    } else {
+                      console.log('No such document!');
+                    }
+                  } catch (error) {
+                    console.log('Error getting document:', error);
+                  }
+            }
+            fetchUserData();
+        }
+    }, [])
+   
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -54,11 +79,7 @@ const Dashboard = () => {
             setError(error.message);
         }
     };
-
-    
-
     useEffect(() => {
-        console.log("User Data:", userData);
         const checkFirstLogin = async (user) => {
             const userRef = doc(firestore, "users", user.uid, "data", "preferences");
             const docSnapshot = await getDoc(userRef);
@@ -71,30 +92,7 @@ const Dashboard = () => {
         const unsubscribe = auth.onAuthStateChanged(user => user && checkFirstLogin(user));
         return () => unsubscribe();
     }, []);
-
-    useEffect(() => {
-        console.log("User Data:", userData);
-        if (user) {
-          const userUid = user.uid;
-          const docRef = doc(firestore, `users/${userUid}/data/preferences`);
-    
-          const fetchUserData = async () => {
-            try {
-              const docSnap = await getDoc(docRef);
-    
-              if (docSnap.exists()) {
-                setUserData([docSnap.data()]);
-              } else {
-                console.log('No such document!');
-              }
-            } catch (error) {
-              console.log('Error getting document:', error);
-            }
-          };
-    
-          fetchUserData();
-        }
-      }, []);
+   
 
     const fetchMealSuggestion = async () => {
         if (!userData || userData.length === 0) {
@@ -137,7 +135,7 @@ const Dashboard = () => {
                     
                     Suggest a meal plan based on the above profile.
                     `
-                                    },
+                },
             ];
             const data = await axios.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -201,7 +199,7 @@ const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
         <div>
             {showModal && <PreferencesModal close={() => setShowModal(false)} isFirstLogin={isFirstLogin} />}
             <h1>Welcome to Meal Planner</h1>
-            <button onClick={fetchMealSuggestion} disabled={loading || !userData}>
+            <button onClick={fetchMealSuggestion} disabled={loading || !userData} style={{ cursor: "pointer" }}>
                 Get Meal Suggestion
             </button>
             {loading && <p>Loading...</p>}
@@ -210,26 +208,28 @@ const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
             <Calendar
                 localizer={localizer}
                 events={events}
+                style={{ height: 400 }}
                 startAccessor="start"
                 endAccessor="end"
-                style={{ height: 500 }}
-                views={['week']} // This restricts the view to just 'day'
-                defaultView="week" // This sets the default view to 'day'
+                views={Views.WEEK} // This restricts the view to just 'day'
+                defaultView={Views.WEEK} // This sets the default view to 'day'
                 onNavigate={(date) => setSelectedDate(date)} 
                 timeslots={2}
+                showMultiDayTimes
+                selectable
                 timeslotStyle={(date, isGutter) => {
                   if (isGutter) {
                     return { display: 'none' };
                   }
                   return {};
-                }}// This captures the current date in focus
-                id="myCalendar"
+                }} // This captures the current date in focus
+                
                 components={{
                     event: CustomEvent,
                 }}
     
             />
-                    <button onClick={handleLogout}>Sign Out</button>
+                    <button onClick={handleLogout} style={{ cursor: "pointer" }}>Sign Out</button>
 
         </div>
     );
