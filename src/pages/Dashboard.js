@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { firestore, auth, signOut } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import PreferencesModal from './PreferencesModal';
 import { useUserAuth } from '../UserAuthContext';
 import axios from 'axios';
@@ -11,26 +11,27 @@ import './css/dashboard.css'
 
 const localizer = momentLocalizer(moment);
 
-const CustomEvent = ({ event }) => {
-    // Split the meals string into an array
-    const meals = event.title.split(','); // Assuming meals are comma-separated
+const CustomEvent = ({event}) => {
+    //Split the meals string into an array
+    const meals = Object.keys(event.meal); // Assuming meals are comma-separated
 
     return (
         <div>
             {meals.map((meal, index) => (
-                <a 
+                <a
                     key={index}
                     href={`#meal-link-for-${meal.trim()}`} // Adjust the link as per your needs
-                    target="_blank" 
+                    target="_blank"
                     rel="noopener noreferrer"
                     style={{ display: 'block', marginBottom: '5px' }} // Adding some spacing between links
                 >
-                    {meal.trim()}
+                    {meal + " : " + event.meal[meal]}
                 </a>
             ))}
         </div>
     );
 };
+
 
 
 
@@ -40,38 +41,42 @@ const Dashboard = () => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [mealSuggestion, setMealSuggestion] = useState([]);
+    const [mealSuggestion, setMealSuggestion] = useState([] || null);
     const [events, setEvents] = useState([]);
     const { user } = useUserAuth();
     const userUid = user ? user.uid : null;
     const API_Key = process.env.REACT_APP_OPENAI_API_KEY;
     const [selectedDate, setSelectedDate] = useState(new Date()); // State to track the currently viewed day
 
+    // const formatMealPlanOutput = () => {
+      
+    // };
 
-    useEffect(()=>{
+
+    useEffect(() => {
         console.log("User Data:", userData);
         if (user) {
             // console.log(user);
-          const userUid = user.uid;
-          const docRef = doc(firestore, `users/${userUid}/data/preferences`);
+            const userUid = user.uid;
+            const docRef = doc(firestore, `users/${userUid}/data/preferences`);
             // this is the function to fetch user data
-            const fetchUserData = async()=>{
+            const fetchUserData = async () => {
                 try {
                     const docSnap = await getDoc(docRef);
                     if (docSnap.exists()) {
-                      setUserData([docSnap.data()]);
-                      console.log([docSnap.data()]);
+                        setUserData([docSnap.data()]);
+                        console.log([docSnap.data()]);
                     } else {
-                      console.log('No such document!');
+                        console.log('No such document!');
                     }
-                  } catch (error) {
+                } catch (error) {
                     console.log('Error getting document:', error);
-                  }
+                }
             }
             fetchUserData();
         }
-    }, [])
-   
+    }, [user])
+
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -88,18 +93,17 @@ const Dashboard = () => {
                 setIsFirstLogin(true);
             }
         };
-        
+
         const unsubscribe = auth.onAuthStateChanged(user => user && checkFirstLogin(user));
         return () => unsubscribe();
     }, []);
-   
 
-    const fetchMealSuggestion = async () => {
+    const fetchMealSuggestion = async (env) => {
+        env.preventDefault();
         if (!userData || userData.length === 0) {
             console.error("User data is not loaded yet.");
             return;
         }
-    
         console.log("Button Clicked");
         setLoading(true);
 
@@ -108,7 +112,6 @@ const Dashboard = () => {
                 Authorization: `Bearer ${API_Key}`,
             },
         };
-
         try {
             const messagesToSend = [
                 { role: "system", content: "You are a helpful assistant." },
@@ -130,15 +133,16 @@ const Dashboard = () => {
                     - Meals Per Day Preference: ${userData[0].mealsPerDay}
                     - Preferred Cuisine: ${userData[0].preferredCuisine}
                     - Primary Fitness Goal: ${userData[0].primaryGoal}
-                    - Snacks Per Day: ${userData[0].snacksPerDay}
+                    - Snackss Per Day: ${userData[0].SnackssPerDay}
                     - Weight: ${userData[0].weight} KG
                     
-                    Suggest a meal plan based on the above profile.
+                    Generate a weekly meal plan in a JSON format. The meal plan should include breakfast, lunch, dinner and a single Snacks for each day of the week. Make sure to include a variety of cuisines and ensure that the meals are balanced and nutritious. \n\n---\nMonday:\n  Breakfast:\n  Lunch:\n  Dinner:\n Snacks:\n\nTuesday:\n  Breakfast:\n  Lunch:\n  Dinner:\n Snacks:\n\nWednesday:\n  Breakfast:\n  Lunch:\n  Dinner:\n Snacks:\n\nThursday:\n  Breakfast:\n  Lunch:\n  Dinner:\n Snacks:\n\nFriday:\n  Breakfast:\n  Lunch:\n  Dinner:\n Snackss:\n\nSaturday:\n  Breakfast:\n  Lunch:\n  Dinner:\n Snacks:\n\nSunday:\n  Breakfast:\n  Lunch:\n  Dinner:\n
+                    
                     `
                 },
             ];
             const data = await axios.post(
-                "https://api.openai.com/v1/chat/completions",
+                `https://api.openai.com/v1/chat/completions`,
                 {
                     model: `gpt-3.5-turbo`,
                     messages: messagesToSend,
@@ -147,60 +151,100 @@ const Dashboard = () => {
                 config
             );
             const rawMealPlan = data.data.choices[0].message.content;
-            const mealsByDay = rawMealPlan.split('\n'); // Adjust if your format differs
-            console.log(mealsByDay);
-            setMealSuggestion(mealsByDay);
+            console.log(rawMealPlan);
+            setMealSuggestion(rawMealPlan);
             setLoading(false);
+            // formatMealPlanOutput(mealSuggestion);
         } catch (err) {
             console.log(err);
             setError(err.message);
             setLoading(false);
         }
     };
-    const formatMealPlanOutput = (output) => {
-        const mealPlan = [];
-        let currentDayMeals = []; // An array to store meals for a day
-    
-        output.forEach((line, index) => {
-            if (line.includes("Day")) {
-                if (currentDayMeals.length) {
-                    mealPlan.push(currentDayMeals.join('\n')); // Join meals with a newline and add to mealPlan
-                    currentDayMeals = [];
+    const formatMealPlanOutput = async(weeklyMealPlan)=>{
+        let formatMeal = [];
+        try{
+                if (typeof weeklyMealPlan === 'string') {
+                    weeklyMealPlan = JSON.parse(weeklyMealPlan);
                 }
-            } else if (line.includes("Breakfast") || line.includes("Lunch") || line.includes("Dinner")) {
-                currentDayMeals.push(line);
-            } 
-        });
-    
-        if (currentDayMeals.length) {
-            mealPlan.push(currentDayMeals.join('\n'));
+                if (typeof weeklyMealPlan !== 'object' || weeklyMealPlan === null) {
+                    throw new Error('Invalid input format');
+                }
+                formatMeal = Object.keys(weeklyMealPlan).map((key, i) => {
+                    let weekly = weeklyMealPlan[key];
+                    const start =  moment().add(i, 'days').startOf('day').toDate();
+                    const end =  moment().add(i, 'days').endOf('day').toDate();
+                        return {
+                            meal: weekly,
+                            start,
+                            end
+                        }
+                });
+            } catch(err) {
+                console.log("Error occured", err.message);
+            }
+            console.log(formatMeal);
+            let userUid = user ? user.uid : null;
+            if(userUid){
+                try{
+                    const docRef = doc(firestore, `users/${userUid}/data/preferences`);
+                    await setDoc(docRef, {...formatMeal});
+                }catch(err){
+                    console.log(err.message);
+                }
+            }
+            setEvents(formatMeal);
+    }
+    const getMealFirebase = async()=>{
+        if (user) {
+            // console.log(user);
+            const userUid = user.uid;
+            const docRef = doc(firestore, `users/${userUid}/data/preferences`);
+            // this is the function to fetch user data
+                try {
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        setEvents([docSnap.data()]);
+                        console.log([docSnap.data()]);
+                    } else {
+                        console.log('No such document!');
+                    }
+                } catch (error) {
+                    console.log('Error getting document:', error);
+                }
         }
-    
-        return mealPlan;
-    };
-    
-    useEffect(() => {
-        if (mealSuggestion && mealSuggestion.length) {
-            const formattedPlan = formatMealPlanOutput(mealSuggestion);
-            const newEvents = formattedPlan.map((day, index) => ({
-                start: moment().add(index, 'days').startOf('day').toDate(),
-                end: moment().add(index, 'days').endOf('day').toDate(),
-                title: day  // use just the day string
-            }));
-    
-            setEvents(newEvents);
-        }
-    }, [mealSuggestion]);
-    
-    const mealOutput = [ /*... your output array ...*/ ];
-const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
+    }
+    useEffect(()=>{
+        getMealFirebase();
+    })
+
+    // useEffect(() => {
+    //     formatMealPlanOutput(mealSuggestion);
+    //     if (mealSuggestion && mealSuggestion.length) {
+    //         const formattedPlan = formatMealPlanOutput(mealSuggestion);
+    //         console.log(formattedPlan);
+    //         const newEvents = formattedPlan.map((day, index) => {
+    //             day.start =  moment().add(index, 'days').startOf('day').toDate();
+    //             day.end =  moment().add(index, 'days').endOf('day').toDate();
+    //             // title: day  // use just the day string
+    //         });
+    //         console.log(newEvents);
+    //         setEvents(newEvents);
+    //     }
+    // }, [loading]);
+
+    // const mealOutput = [ /*... your output array ...*/];
+    // const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
 
     return (
         <div>
             {showModal && <PreferencesModal close={() => setShowModal(false)} isFirstLogin={isFirstLogin} />}
             <h1>Welcome to Meal Planner</h1>
-            <button onClick={fetchMealSuggestion} disabled={loading || !userData} style={{ cursor: "pointer" }}>
+            <button type="submit" onClick={fetchMealSuggestion} disabled={loading || !userData} style={{ cursor: "pointer" }}>
                 Get Meal Suggestion
+            </button>
+            <button type="submit" onClick={()=>formatMealPlanOutput(mealSuggestion)} disabled={!mealSuggestion || !userData}   style={{ cursor: "pointer" }}>
+                Get Weekly meal Schedule
             </button>
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error}</p>}
@@ -213,23 +257,24 @@ const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
                 endAccessor="end"
                 views={Views.WEEK} // This restricts the view to just 'day'
                 defaultView={Views.WEEK} // This sets the default view to 'day'
-                onNavigate={(date) => setSelectedDate(date)} 
+                onNavigate={(date) => setSelectedDate(date)}
                 timeslots={2}
                 showMultiDayTimes
                 selectable
+                popup
                 timeslotStyle={(date, isGutter) => {
-                  if (isGutter) {
-                    return { display: 'none' };
-                  }
-                  return {};
+                    if (isGutter) {
+                        return { display: 'none' };
+                    }
+                    return {};
                 }} // This captures the current date in focus
-                
+
                 components={{
                     event: CustomEvent,
                 }}
-    
+
             />
-                    <button onClick={handleLogout} style={{ cursor: "pointer" }}>Sign Out</button>
+            <button onClick={handleLogout} style={{ cursor: "pointer" }}>Sign Out</button>
 
         </div>
     );
