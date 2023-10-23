@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { firestore, auth, signOut } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { addDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import PreferencesModal from './PreferencesModal';
 import { useUserAuth } from '../UserAuthContext';
 import axios from 'axios';
@@ -13,11 +13,30 @@ const localizer = momentLocalizer(moment);
 
 const CustomEvent = ({event}) => {
     //Split the meals string into an array
-    const meals = Object.keys(event.meal); // Assuming meals are comma-separated
+
+    const meals = Object.keys(event.meal);
+    // const meals = event.map(events=>{
+    //     return Object.keys(events)
+    // })// Assuming meals are comma-separated
+    // console.log(meals);
+    // events.map(ww=> {return Object.keys(ww).map(ee=> ww[ee].meal)})
 
     return (
         <div>
-            {meals.map((meal, index) => (
+            {
+                meals.map((even, index)=>(
+                    <a
+                    key={index}
+                    href={`#meal-link-for`} // Adjust the link as per your needs
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'block', marginBottom: '5px' }} // Adding some spacing between links
+                >
+                    {even + ":" + event.meal[even]}
+                </a>
+                ))
+            }
+            {/* {meals.map((meal, index) => (
                 <a
                     key={index}
                     href={`#meal-link-for-${meal.trim()}`} // Adjust the link as per your needs
@@ -27,13 +46,10 @@ const CustomEvent = ({event}) => {
                 >
                     {meal + " : " + event.meal[meal]}
                 </a>
-            ))}
+            ))} */}
         </div>
     );
 };
-
-
-
 
 const Dashboard = () => {
     const [showModal, setShowModal] = useState(false);
@@ -47,11 +63,6 @@ const Dashboard = () => {
     const userUid = user ? user.uid : null;
     const API_Key = process.env.REACT_APP_OPENAI_API_KEY;
     const [selectedDate, setSelectedDate] = useState(new Date()); // State to track the currently viewed day
-
-    // const formatMealPlanOutput = () => {
-      
-    // };
-
 
     useEffect(() => {
         console.log("User Data:", userData);
@@ -163,6 +174,7 @@ const Dashboard = () => {
     };
     const formatMealPlanOutput = async(weeklyMealPlan)=>{
         let formatMeal = [];
+        let firebaseMeal;
         try{
                 if (typeof weeklyMealPlan === 'string') {
                     weeklyMealPlan = JSON.parse(weeklyMealPlan);
@@ -180,43 +192,66 @@ const Dashboard = () => {
                             end
                         }
                 });
-            } catch(err) {
+                 setEvents(formatMeal);
+                console.log(formatMeal);
+                let userUid = user ? user.uid : null;
+                if(userUid){
+                    const docRef = doc(firestore, `users/${userUid}/meal/weeklyMeals`);
+                    let checkMealExist = await getDoc(docRef);
+                    if(checkMealExist.exists()){
+                        firebaseMeal = await updateDoc(docRef, {...formatMeal});
+                        console.log("meal updated");
+                        
+                    }
+                    console.log("added to firebase");
+                    
+                    return firebaseMeal = await setDoc(docRef, {...formatMeal});
+                    } 
+            }catch(err){
                 console.log("Error occured", err.message);
             }
-            console.log(formatMeal);
-            let userUid = user ? user.uid : null;
-            if(userUid){
-                try{
-                    const docRef = doc(firestore, `users/${userUid}/data/preferences`);
-                    await setDoc(docRef, {...formatMeal});
-                }catch(err){
-                    console.log(err.message);
-                }
-            }
-            setEvents(formatMeal);
+           
     }
     const getMealFirebase = async()=>{
         if (user) {
             // console.log(user);
             const userUid = user.uid;
-            const docRef = doc(firestore, `users/${userUid}/data/preferences`);
+            const docRef = doc(firestore, `users/${userUid}/meal/weeklyMeals`);
             // this is the function to fetch user data
                 try {
+                    
                     const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        setEvents([docSnap.data()]);
-                        console.log([docSnap.data()]);
+                    if (docSnap.exists()){
+                        let data = [];
+                        let oop = []
+                        data.push(docSnap.data());
+                        data.map(ww=>{
+                            // oop.push((Object.keys(ww).map(ee=> Object.keys(ww[ee]["meal"]))));
+                            for(let key in ww){
+                                if(ww[key].meal){
+                                    oop.push({
+                                        meal: ww[key].meal
+                                    })
+                                    return oop;
+                                }
+                                 setEvents(oop);
+                            }
+                            console.log(oop);
+                            console.log(events);
+                        })
                     } else {
                         console.log('No such document!');
                     }
                 } catch (error) {
-                    console.log('Error getting document:', error);
+                    console.log('Error:', error.message);
                 }
         }
     }
+    console.log(events);
     useEffect(()=>{
-        getMealFirebase();
-    })
+         getMealFirebase();
+    });
+   
 
     // useEffect(() => {
     //     formatMealPlanOutput(mealSuggestion);
@@ -243,7 +278,7 @@ const Dashboard = () => {
             <button type="submit" onClick={fetchMealSuggestion} disabled={loading || !userData} style={{ cursor: "pointer" }}>
                 Get Meal Suggestion
             </button>
-            <button type="submit" onClick={()=>formatMealPlanOutput(mealSuggestion)} disabled={!mealSuggestion || !userData}   style={{ cursor: "pointer" }}>
+            <button type="submit" onClick={()=>formatMealPlanOutput(mealSuggestion)} disabled={!mealSuggestion}   style={{ cursor: "pointer" }}>
                 Get Weekly meal Schedule
             </button>
             {loading && <p>Loading...</p>}
@@ -270,7 +305,7 @@ const Dashboard = () => {
                 }} // This captures the current date in focus
 
                 components={{
-                    event: CustomEvent,
+                    event: CustomEvent
                 }}
 
             />
