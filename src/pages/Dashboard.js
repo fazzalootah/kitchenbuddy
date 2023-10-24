@@ -11,15 +11,12 @@ import './css/dashboard.css'
 
 const localizer = momentLocalizer(moment);
 
+
+
 const CustomEvent = ({event}) => {
-    //Split the meals string into an array
 
     const meals = Object.keys(event.meal);
-    // const meals = event.map(events=>{
-    //     return Object.keys(events)
-    // })// Assuming meals are comma-separated
-    // console.log(meals);
-    // events.map(ww=> {return Object.keys(ww).map(ee=> ww[ee].meal)})
+
 
     return (
         <div>
@@ -36,17 +33,7 @@ const CustomEvent = ({event}) => {
                 </a>
                 ))
             }
-            {/* {meals.map((meal, index) => (
-                <a
-                    key={index}
-                    href={`#meal-link-for-${meal.trim()}`} // Adjust the link as per your needs
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: 'block', marginBottom: '5px' }} // Adding some spacing between links
-                >
-                    {meal + " : " + event.meal[meal]}
-                </a>
-            ))} */}
+
         </div>
     );
 };
@@ -63,6 +50,56 @@ const Dashboard = () => {
     const userUid = user ? user.uid : null;
     const API_Key = process.env.REACT_APP_OPENAI_API_KEY;
     const [selectedDate, setSelectedDate] = useState(new Date()); // State to track the currently viewed day
+
+const saveMealToFirebase = async (structuredMealPlan) => {
+    try {
+        // Assuming you have a collection named "mealPlans" in Firestore
+        // Generate a new document reference in the "mealPlans" collection
+        const mealPlanRef = doc(firestore, `users/${userUid}/meal/weeklyMeals`);
+
+        // Set data to the new document
+        await setDoc(mealPlanRef, structuredMealPlan);
+
+        return { status: 'success', data: mealPlanRef.id }; // Return the ID of the new meal plan
+    } catch (error) {
+        return { status: 'error', message: error.message };
+    }
+};
+    
+    useEffect(() => {
+        if (user) {
+            const fetchMealsFromFirebase = async () => {
+                const userUid = user.uid;
+                const docRef = doc(firestore, `users/${userUid}/meal/weeklyMeals`);
+                
+                try {
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        // Assuming your data structure is an object with days as keys
+                        const mealData = docSnap.data();
+
+                        const formattedMeals = Object.keys(mealData).map((key, i) => {
+                            let dailyMeals = mealData[key];
+                            const start = moment().add(i, 'days').startOf('day').toDate();
+                            const end = moment().add(i, 'days').endOf('day').toDate();
+                            return {
+                                meal: dailyMeals.meal,
+                                start,
+                                end
+                            };
+                        });
+                        setEvents(formattedMeals);
+                    } else {
+                        console.log('No meals data found!');
+                    }
+                } catch (error) {
+                    console.error('Error fetching meals:', error);
+                }
+            };
+
+            fetchMealsFromFirebase();
+        }
+    }, [user]);
 
     useEffect(() => {
         console.log("User Data:", userData);
@@ -165,8 +202,10 @@ const Dashboard = () => {
             console.log(rawMealPlan);
             setMealSuggestion(rawMealPlan);
             setLoading(false);
-            // formatMealPlanOutput(mealSuggestion);
-        } catch (err) {
+            const formattedMeal = await formatMealPlanOutput(rawMealPlan);
+            saveMealToFirebase(formattedMeal);
+
+            } catch (err) {
             console.log(err);
             setError(err.message);
             setLoading(false);
@@ -272,15 +311,16 @@ const Dashboard = () => {
     // const formattedMealPlan = formatMealPlanOutput(mealSuggestion);
 
     return (
-        <div>
+        <div className='pleft'>
             {showModal && <PreferencesModal close={() => setShowModal(false)} isFirstLogin={isFirstLogin} />}
-            <h1>Welcome to Meal Planner</h1>
-            <button type="submit" onClick={fetchMealSuggestion} disabled={loading || !userData} style={{ cursor: "pointer" }}>
+            <h3>Welcome to Meal Planner</h3>
+            <div className='nav-top-dash'>
+            <button className="dashboardbtn" type="submit" onClick={fetchMealSuggestion} disabled={loading || !userData} style={{ cursor: "pointer" }}>
                 Get Meal Suggestion
             </button>
-            <button type="submit" onClick={()=>formatMealPlanOutput(mealSuggestion)} disabled={!mealSuggestion}   style={{ cursor: "pointer" }}>
-                Get Weekly meal Schedule
-            </button>
+            <button className="dashboardbtn" onClick={handleLogout} style={{ cursor: "pointer" }}>Sign Out</button>
+            </div>
+
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error}</p>}
 
@@ -309,7 +349,6 @@ const Dashboard = () => {
                 }}
 
             />
-            <button onClick={handleLogout} style={{ cursor: "pointer" }}>Sign Out</button>
 
         </div>
     );
